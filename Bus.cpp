@@ -146,81 +146,17 @@ std::vector<Bus> Bus::readFile (std::string name) {
     return bus;
 }
 
-/* 
-Pivoting the matrix.
-*/
-void Bus::matrixPivot (std::vector<std::vector<double>>& Mat) {
-    for(int i = 0; i < Mat.size() - 1; i++) {
-        if (Mat[i][i] == 0) {
-            bool flag = false;
-            for (int j = 1; j < Mat.size() - i; j++) {
-            if (Mat[i+j][i] != 0) {
-                std::swap(Mat[i],Mat[i+j]);
-                flag = true; 
-                break;
-                } 
-            }
-            // if(!flag) {
-            //     for (int j = 0; j < i; j++) {
-            //         if (Mat[j][i] != 0) {
-            //             std::swap(Mat[i],Mat[j]);
-                        
-            //             break;
-            //         } 
-            //     }
-            //     Bus::matrixPivot(Mat);
-            // }
-        }
-            
-    }    
-}
-
-void Bus::gaussElimination (std::vector<std::vector<double>>& mat) {
-    for (int i=0; i< mat.size(); i++) {
-        if (mat[i][i] == 0) {
-            for (int j = 1; j < mat.size() - i; j++) {
-            if (mat[i+j][i] != 0) {
-                std::swap(mat[i],mat[i+j]);
-                break;
-                } 
-            }
-        }
-        if (mat[i][i] != 0) {
-        for (int row = i+1; row < mat.size(); row++) {
-            for(int col = i; col < mat.size() +1; col++) {
-                mat[row][col] -= mat[i][col]*(mat[row][i]/mat[i][i]); 
-            }
-        }
-        }
-    
-        std::cout<< " during gauss step: " << i+1 << "\n";
-        Bus::displayMatrix(mat);
-    
-    }
-}
-
-
-void Bus::swapMatrixRows (std::vector<std::vector<double>>& A) {
-    int n = A.size();
-    for (int i = 0; i <= n/2 ; i++) {
-        for (int j = 0; j < n+1; j++) {
-            double temp = A[i][j];
-            A[i][j] = A[n-i-1][j];
-            A[n-i-1][j] = temp;
-        }
-    }
-}
 
 std::vector<double> Bus::gauss(std::vector<std::vector<double> >& A) {
     int n = A.size();
 
     for (int i=0; i<n; i++) {
         // Search for maximum in this column
-        double maxEl = abs(A[i][i]);
+        double maxEl = std::abs(A[i][i]);
         int maxRow = i;
         for (int k=i+1; k<n; k++) {
-            if (abs(A[k][i]) > maxEl) {
-                maxEl = abs(A[k][i]);
+            if (std::abs(A[k][i]) > maxEl) {
+                maxEl = std::abs(A[k][i]);
                 maxRow = k;
             }
         }
@@ -279,39 +215,39 @@ void Bus::displayMatrix (std::vector<std::vector<double>>& Mat) {
 
 int Bus::loadFlow(std::vector<Bus> bus, std::vector<std::vector<double>> G, std::vector<std::vector<double>> B, double convergenceCriterion) {
     int size = bus.size();
-    double maxChange = convergenceCriterion + 0.1;
+    double maxChange = convergenceCriterion;
     int interationCount = 0;
 
-    std::vector<std::vector<double>> J1;
-    std::vector<std::vector<double>> J2;
-    std::vector<std::vector<double>> J3;
-    std::vector<std::vector<double>> J4;
-    std::vector<std::vector<double>> J5;
-    std::vector<std::vector<double>> J6;
-    std::vector<std::vector<double>> Jaugmented;
-    std::vector<double> J1row,J2row,J3row,J4row,J5row,J6row,Jaugrow;
     double Gtemp = 0, Btemp = 0;
-    std::vector<double> GtempVector, BtempVector;
+    std::vector<double> GtempVector(size-1), BtempVector(size-1);
     std::vector<double> var;
-    int VbusCount = 0;
-    int QbusCount = 0;
+    
 
-    while(maxChange > convergenceCriterion) {
-        for(int i = 0; i < bus.size(); i++) {
-            if(bus[i].busType == 3) {
+    std::vector<std::vector<double>> Jaugmented(2*size-2, std::vector<double>(2*size-1));
+
+    while(maxChange >= convergenceCriterion) {
+
+        /*
+        Calculate residues P, Q, and V^2
+        */
+       int VbusCount = 0;
+       int QbusCount = 0;
+        for(int i = 0; i < size; i++) {
+            bus[i].deltaV2flag = false;
+            if(bus[i].busType == 3) {       //Check for slack bus
                 continue;
             }
             bus[i].P = 0;
             bus[i].Q = 0;
-            for(int j=0; j < G.size(); j++) {
+            for(int j=0; j < size; j++) {
                 bus[i].P += (bus[i].e * (bus[j].e * G[i][j] + bus[j].f * B[i][j])
                              + bus[i].f * (bus[j].f * G[i][j] - bus[j].e * B[i][j]));
                 bus[i].Q += (bus[i].f * (bus[j].e * G[i][j] + bus[j].f * B[i][j])
                              - bus[i].e * (bus[j].f * G[i][j] - bus[j].e * B[i][j]));
-
             }
             bus[i].deltaP = (bus[i].generationMW - bus[i].loadMW) - bus[i].P;
-            if(bus[i].busType == 2) {
+
+            if(bus[i].busType == 2) {       //Check for Voltage controlled bus
                 if(bus[i].Q <= bus[i].minLimit) {
                     bus[i].Q = bus[i].minLimit;
                     bus[i].deltaQ = (bus[i].generationMVAR - bus[i].loadMVAR) - bus[i].Q;
@@ -321,7 +257,7 @@ int Bus::loadFlow(std::vector<Bus> bus, std::vector<std::vector<double>> G, std:
                     bus[i].deltaQ = (bus[i].generationMVAR - bus[i].loadMVAR) - bus[i].Q;
                     QbusCount++;
                 } else {
-                    bus[i].deltaV2 = std::sqrt(bus[i].finalVoltage*bus[i].finalVoltage - (bus[i].e * bus[i].e + bus[i].f * bus[i].f));
+                    bus[i].deltaV2 = bus[i].finalVoltage*bus[i].finalVoltage - (bus[i].e * bus[i].e + bus[i].f * bus[i].f);
                     VbusCount++;
                     bus[i].deltaV2flag = true;
                 }
@@ -356,187 +292,59 @@ int Bus::loadFlow(std::vector<Bus> bus, std::vector<std::vector<double>> G, std:
         The following segment are intermediate steps to build the Jacobian matrices.
         */
 
-
-        GtempVector = {};
-        BtempVector = {};
-        for(int i=0; i< bus.size(); i++) {
+        for(int i=1; i< size; i++) {
             Gtemp = 0;
             Btemp = 0;
-            for (int j = 0; j < bus.size(); j++) {
+            for (int j = 1; j < size; j++) {
                 if (i!=j) {
                     Gtemp += bus[i].e * G[i][j] + bus[i].f * B[i][j]; 
                     Btemp += bus[i].f * G[i][j] - bus[i].e * B[i][j]; 
                 }
             }
-            GtempVector.push_back(Gtemp);
-            BtempVector.push_back(Btemp);
+            GtempVector[i-1] = Gtemp;
+            BtempVector[i-1] = Btemp;
         }
 
          /* 
-        The following segment builds the Jacobian matrices.
+        The following segment builds the Jacobian matrix.
         */
-        J1 = {};
-        J2 = {};
-        J3 = {};
-        J4 = {};
-        J5 = {};
-        J6 = {};
-        
-        for(int i=1; i< bus.size(); i++) {
-            J1row = {};
-            J2row = {};
-            J3row = {};
-            J4row = {};
-            J5row = {};
-            J6row = {};
-            for(int j=1; j< bus.size(); j++) {
-                if (i==j) {
-                    J1row.push_back(2*bus[i].e*G[i][i] + GtempVector[i]);
-                    J2row.push_back(2*bus[i].f*G[i][i] + BtempVector[i]);
+
+
+        int k = 0;
+        int l = 0;
+        for(int i = 1; i < size; i++) {
+            for(int j = 1; j < size; j++) {
+                if( i == j ) {
+                    Jaugmented[i-1][j-1] = 2*bus[i].e*G[i][i] + GtempVector[i];
+                    Jaugmented[i-1][size -1 + j-1] = 2*bus[i].f*G[i][i] + BtempVector[i];
                     if (bus[i].deltaV2flag) {
-                        J5row.push_back(2*bus[i].e);
-                        J6row.push_back(2*bus[i].f);
+                        Jaugmented[QbusCount + size -1 + k][j-1] = 2*bus[i].e;
+                        Jaugmented[QbusCount + size -1 + k][size -1 + j-1] = 2*bus[i].f;
                     } else {
-                        J3row.push_back(2*bus[i].e*B[i][i] - BtempVector[i]);
-                        J4row.push_back(2*bus[i].f*B[i][i] + GtempVector[i]);
-                    }            
+                        Jaugmented[size -1 + l][j-1] = 2*bus[i].e*B[i][i] - BtempVector[i];
+                        Jaugmented[size -1 + l][size -1 + j-1] = 2*bus[i].f*B[i][i] + GtempVector[i];
+                    }
                 } else {
-                    J1row.push_back(bus[i].e*G[i][j] - bus[i].f*B[i][j]);
-                    J2row.push_back(bus[i].e*B[i][j] + bus[i].f*G[i][j]);
+                    Jaugmented[i-1][j-1] = bus[i].e*G[i][j] - bus[i].f*B[i][j];
+                    Jaugmented[i-1][size -1 + j-1] = bus[i].e*B[i][j] + bus[i].f*G[i][j];
                     if (bus[i].deltaV2flag) {
-                        J5row.push_back(0.0);
-                        J6row.push_back(0.0);
+                        Jaugmented[QbusCount + size -1 + k][j-1] = 0.0;
+                        Jaugmented[QbusCount + size -1 + k][size -1 + j-1] = 0.0;
                     } else {
-                        J3row.push_back(bus[i].e*B[i][j] + bus[i].f*G[i][j]);
-                        J4row.push_back(bus[i].f*B[i][j] - bus[i].e*G[i][j]);
-                    } 
+                        Jaugmented[size -1 + l][j-1] = bus[i].e*B[i][j] + bus[i].f*G[i][j];
+                        Jaugmented[size -1 + l][size -1 + j-1] = bus[i].f*B[i][j] - bus[i].e*G[i][j];
+                    }
                 }
             }
-            J1.push_back(J1row);
-            J2.push_back(J2row);
-            if (bus[i].busType == 2) {
-                J5.push_back(J5row);
-                J6.push_back(J6row);
+            Jaugmented[i-1][2*size-2] = bus[i].deltaP;
+            if (bus[i].deltaV2flag) {
+                Jaugmented[QbusCount + size -1 + k][2*size-2] = bus[i].deltaV2;
+                k++;
             } else {
-                J3.push_back(J3row);
-                J4.push_back(J4row);               
+                Jaugmented[size -1 + l][2*size-2] = bus[i].deltaQ;
+                l++;
             }
         }
-        
-
-        // std::vector<std::vector<double>> J1(size-1, std::vector<double>(size-1));
-        // std::vector<std::vector<double>> J2(size-1, std::vector<double>(size-1));
-        // std::vector<std::vector<double>> J3(QbusCount, std::vector<double>(size));
-        // std::vector<std::vector<double>> J4(QbusCount, std::vector<double>(size));
-        // std::vector<std::vector<double>> J5(VbusCount, std::vector<double>(size));
-        // std::vector<std::vector<double>> J6(VbusCount, std::vector<double>(size));
-        // std::vector<std::vector<double>> Jaugmented(QbusCount + VbusCount + size, std::vector<double>(2*size));
-
-        // int k = 0;
-        // int l = 0;
-        // for(int i = 1; i < size; i++) {
-        //     for(int j = 1; j < size; j++) {
-        //         if( i == j ) {
-        //             J1[i-1][j-1] = 2*bus[i].e*G[i][i] + GtempVector[i];
-        //             J2[i-1][j-1] = 2*bus[i].f*G[i][i] + BtempVector[i];
-        //             Jaugmented[i-1][j-1] = 2*bus[i].e*G[i][i] + GtempVector[i];
-        //             Jaugmented[i-1][size + j-1] = 2*bus[i].f*G[i][i] + BtempVector[i];
-        //             if (bus[i].deltaV2flag) {
-        //                 J5[k][j-1] = 2*bus[i].e;
-        //                 J6[k][j-1] = 2*bus[i].f;
-        //                 Jaugmented[QbusCount + size + k][j-1] = 2*bus[i].e;
-        //                 Jaugmented[QbusCount + size + k][size + j-1] = 2*bus[i].f;
-        //             } else {
-        //                 J3[l][j-1] = 2*bus[i].e*B[i][i] - BtempVector[i];
-        //                 J4[l][j-1] = 2*bus[i].f*B[i][i] + GtempVector[i];
-        //                 Jaugmented[size + l][j-1] = 2*bus[i].e*B[i][i] - BtempVector[i];
-        //                 Jaugmented[size + l][size + j-1] = 2*bus[i].f*B[i][i] + GtempVector[i];
-        //             }
-        //         } else {
-        //             J1[i-1][j-1] = bus[i].e*G[i][j] - bus[i].f*B[i][j];
-        //             J2[i-1][j-1] = bus[i].e*B[i][j] + bus[i].f*G[i][j];
-        //             Jaugmented[i-1][j-1] = bus[i].e*G[i][j] - bus[i].f*B[i][j];
-        //             Jaugmented[i-1][size + j-1] = bus[i].e*B[i][j] + bus[i].f*G[i][j];
-        //             if (bus[i].deltaV2flag) {
-        //                 J5[k][j-1] = 0.0;
-        //                 J6[k][j-1] = 0.0;
-        //                 Jaugmented[QbusCount + size + k][j-1] = 0.0;
-        //                 Jaugmented[QbusCount + size + k][size + j-1] = 0.0;
-        //             } else {
-        //                 J3[l][j-1] = bus[i].e*B[i][j] + bus[i].f*G[i][j];
-        //                 J4[l][j-1] = bus[i].f*B[i][j] - bus[i].e*G[i][j];
-        //                 Jaugmented[size + l][j-1] = bus[i].e*B[i][j] + bus[i].f*G[i][j];
-        //                 Jaugmented[size + l][size + j-1] = bus[i].f*B[i][j] - bus[i].e*G[i][j];
-        //             }
-        //         }
-        //     }
-        //     Jaugmented[i-1][2*size] = bus[i].deltaP;
-        //     if (bus[i].deltaV2flag) {
-        //         Jaugmented[QbusCount + size + k][2*size] = bus[i].deltaV2;
-        //         k++;
-        //     } else {
-        //         Jaugmented[size + l][2*size] = bus[i].deltaQ;
-        //         l++;
-        //     }
-        // }
-
-
-
-         /* 
-        The following segment compiles individual Jacobian Matrices to form the J augmented matrix.
-        */
-        Jaugmented = {};
-        for (int i=0; i<J1.size()+J3.size()+J5.size(); i++) {
-            Jaugrow = {};
-            for (int j=0; j<J1row.size()+J2row.size()+1; j++) {
-                if (i<J1.size()) {
-                    if (j<J1row.size()) {
-                        Jaugrow.push_back(J1[i][j]);
-                    } else if (j<J1row.size()+J2row.size()) {
-                        Jaugrow.push_back(J2[i][j-J1row.size()]);
-                    } else {
-                        Jaugrow.push_back(bus[i].deltaP);
-                    }
-                } else if (i<J1.size()+J3.size()) {
-                    if (j<J3row.size()) {
-                        Jaugrow.push_back(J3[i-J1.size()][j]);
-                    } else if (j<J1row.size()+J2row.size()) {
-                        Jaugrow.push_back(J4[i-J1.size()][j-J1row.size()]);
-                    } else {
-                        Jaugrow.push_back(bus[i-J1.size()].deltaQ);
-                    }
-                } else if (i<J1.size()+J3.size()+J5.size()) {
-                    if (j<J1row.size()) {
-                        Jaugrow.push_back(J5[i-J1.size()-J3.size()][j]);
-                    } else if (j<J1row.size()+J2row.size()) {
-                        Jaugrow.push_back(J6[i-J1.size()-J3.size()][j-J1row.size()]);
-                    } else {
-                        Jaugrow.push_back(bus[i-J1.size()-J3.size()].deltaV2);
-                    }
-                }
-            }
-            Jaugmented.push_back(Jaugrow);
-        }
-
-        // std::cout<< " Before pivot \n";
-        // Bus::displayMatrix(Jaugmented);
-
-        // Bus::matrixPivot(Jaugmented);
-        // std::cout<< " After pivot \n";
-        // Bus::displayMatrix(Jaugmented);
-        
-        // std::cout<< " Before gauss \n";
-        // Bus::displayMatrix(Jaugmented);
-        
-        // Bus::gaussElimination (Jaugmented);
-
-        // std::cout<< " After gauss \n";
-        // Bus::displayMatrix(Jaugmented);
-
-        // std::cout<< " Before shuffle \n";
-        // Bus::displayMatrix(Jaugmented);
-
-        // Bus::swapMatrixRows(Jaugmented);
 
         std::cout<< " Before gauss \n";
         Bus::displayMatrix(Jaugmented);
@@ -549,32 +357,10 @@ int Bus::loadFlow(std::vector<Bus> bus, std::vector<std::vector<double>> G, std:
         /* 
         The following segment finds the values of (delta)e and (delta)f.
         */
-        // double temp;
-        // var = {};
-        // if(Jaugmented[Jaugmented.size()-1][Jaugmented.size()-1]==0){
-        //     var.push_back(0);
-        // } else {
-        //     var.push_back(Jaugmented[Jaugmented.size()-1][Jaugmented.size()]/Jaugmented[Jaugmented.size()-1][Jaugmented.size()-1]);
-        // }
-        // for(int i = 0; i < Jaugmented.size(); i++) {
-        //     temp = Jaugmented[Jaugmented.size()-i-1][Jaugmented.size()];
-        //     for(int j = 0; j < Jaugrow.size(); j++) {
-        //     temp -= var[j]*Jaugmented[Jaugmented.size()-i-1][Jaugrow.size()-j-1];
-        //     }
-        //     var.push_back(temp/Jaugmented[i][i]);
-        // }
-        // for(int i = 0; i< bus.size(); i++) {
-        //     bus[i].deltae = var[2*bus.size()-1-i];
-        //     bus[i].deltaf = var[bus.size()-1-i];
-        //     bus[i].e += bus[i].deltae;
-        //     bus[i].f += bus[i].deltaf;
-        //     bus[i].calculatedVoltage = std::sqrt(bus[i].e*bus[i].e + bus[i].f*bus[i].f);
-        //     bus[i].calculatedAngle = std::atan(bus[i].f/bus[i].e)*180/(std::atan(1)*4);
-        // }
-
-        for(int i = 1; i< bus.size(); i++) {
+    
+        for(int i = 1; i< size; i++) {
             bus[i].deltae = var[i-1];
-            bus[i].deltaf = var[bus.size()+i-1];
+            bus[i].deltaf = var[size + i-1];
             bus[i].e += bus[i].deltae;
             bus[i].f += bus[i].deltaf;
             bus[i].calculatedVoltage = std::sqrt(bus[i].e*bus[i].e + bus[i].f*bus[i].f);
