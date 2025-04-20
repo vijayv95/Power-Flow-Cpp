@@ -24,8 +24,8 @@ std::vector<std::vector<double>> Branch::matrixG(std::vector<Branch> branch, int
                 if((b.tapBusNumber == i+1 && b.zBusNumber == j+1)
                         || (b.tapBusNumber == j+1 && b.zBusNumber == i+1)) {
 
-                    con -= b.branchResistance / (b.branchResistance*b.branchResistance
-                                                + b.branchReactance*b.branchReactance);
+                        con -= b.branchResistance / (b.branchResistance*b.branchResistance
+                                                        + b.branchReactance*b.branchReactance);
                 }
         
             }
