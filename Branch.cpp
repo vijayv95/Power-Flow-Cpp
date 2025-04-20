@@ -6,12 +6,10 @@
 #include <iomanip>
 
 std::vector<std::vector<double>> Branch::matrixG(std::vector<Branch> branch, int size) {
-    std::vector<std::vector<double>> G;
+    std::vector<std::vector<double>> G(size,std::vector<double>(size));
     double con;
-    std::vector<double> rowG;
 
     for( int i=0; i< size; i++) {
-        rowG = {};
         for (int j=0; j< size; j++) {
             con = 0;
             for(Branch& b : branch) {
@@ -29,9 +27,8 @@ std::vector<std::vector<double>> Branch::matrixG(std::vector<Branch> branch, int
                 }
         
             }
-            rowG.push_back(con);
+            G[i][j] = con;
         }
-        G.push_back(rowG);
     }
     return G;
 }
@@ -48,13 +45,13 @@ std::vector<std::vector<double>> Branch::matrixB(std::vector<Branch> branch, int
             for(Branch& b : branch) {
                 if((b.tapBusNumber == i+1 && b.tapBusNumber == j+1)
                         || (b.zBusNumber == i+1 && b.zBusNumber == j+1)) {
-                        sus -= b.branchReactance / (b.branchResistance*b.branchResistance
+                        sus -= -b.branchReactance / (b.branchResistance*b.branchResistance
                                                         + b.branchReactance*b.branchReactance);
                         sus += b.lineCharging;
                 }
                 if((b.tapBusNumber == i+1 && b.zBusNumber == j+1)
                         || (b.tapBusNumber == j+1 && b.zBusNumber == i+1)) {
-                    sus += b.branchReactance / (b.branchResistance*b.branchResistance
+                    sus += -b.branchReactance / (b.branchResistance*b.branchResistance
                                                 + b.branchReactance*b.branchReactance);
                 }
         
