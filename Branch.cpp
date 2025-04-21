@@ -34,12 +34,9 @@ std::vector<std::vector<double>> Branch::matrixG(std::vector<Branch> branch, int
 }
 
 std::vector<std::vector<double>> Branch::matrixB(std::vector<Branch> branch, int size) {
-    std::vector<std::vector<double>> B;
+    std::vector<std::vector<double>> B(size,std::vector<double>(size));
     double sus;
-    std::vector<double> rowB;
-
     for( int i=0; i< size; i++) {
-        rowB = {};
         for (int j=0; j< size; j++) {
             sus = 0;
             for(Branch& b : branch) {
@@ -55,11 +52,9 @@ std::vector<std::vector<double>> Branch::matrixB(std::vector<Branch> branch, int
                                                 + b.branchReactance*b.branchReactance);
                 }
         
-            }
-
-            rowB.push_back(sus);
+            }  
+            B[i][j]=sus;
         }
-        B.push_back(rowB);
     }
     return B;
 }
