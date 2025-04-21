@@ -249,12 +249,10 @@ int Bus::loadFlow(std::vector<Bus> bus, std::vector<std::vector<double>> G, std:
 
             if(bus[i].busType == 2) {       //Check for Voltage controlled bus
                 if(bus[i].Q <= bus[i].minLimit) {
-                    bus[i].Q = bus[i].minLimit;
-                    bus[i].deltaQ = (bus[i].generationMVAR - bus[i].loadMVAR) - bus[i].Q;
+                    bus[i].deltaQ = bus[i].minLimit - bus[i].Q;
                     QbusCount++;
                 } else if(bus[i].Q >= bus[i].maxLimit) {
-                    bus[i].Q = bus[i].maxLimit;
-                    bus[i].deltaQ = (bus[i].generationMVAR - bus[i].loadMVAR) - bus[i].Q;
+                    bus[i].deltaQ = bus[i].maxLimit - bus[i].Q;
                     QbusCount++;
                 } else {
                     bus[i].deltaV2 = bus[i].finalVoltage*bus[i].finalVoltage - (bus[i].e * bus[i].e + bus[i].f * bus[i].f);
