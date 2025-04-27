@@ -10,10 +10,11 @@ class Bus {
     static void displayResult(std::vector<Bus>);
     static int loadFlow(std::vector<Bus>, std::vector<std::vector<double>>, std::vector<std::vector<double>>, double);
     static void matrixPivot (std::vector<std::vector<double>>&);
-    static void displayMatrix (std::vector<std::vector<double>>&);
+    static void displayBinaryMatrix (std::vector<std::vector<double>>&);
     static void gaussElimination (std::vector<std::vector<double>>&);
     static std::vector<double> gauss(std::vector<std::vector<double>>&);
     static void swapMatrixRows (std::vector<std::vector<double>>&);
+    static void displayMatrix (std::vector<std::vector<double>>&);
         
     private:
 

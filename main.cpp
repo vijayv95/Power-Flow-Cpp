@@ -6,7 +6,10 @@
 
 int main() {
     std::string name;
-    name = "ieee14cdf.txt";
+    // name = "ieee14cdf.txt";
+    name = "Data/JacobianTest1.txt";
+    // name = "Data/JacobianTest2.txt";
+    // name = "Data/JacobianTest3.txt";
     // name = "test.txt";
     // std::cout << "Enter name of file (for example: ieee14cdf.txt): ";
     // std::cin >> name; 

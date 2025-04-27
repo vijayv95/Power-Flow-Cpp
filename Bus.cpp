@@ -199,7 +199,7 @@ std::vector<double> Bus::gauss(std::vector<std::vector<double> >& A) {
 }
 
 
-void Bus::displayMatrix (std::vector<std::vector<double>>& Mat) {
+void Bus::displayBinaryMatrix (std::vector<std::vector<double>>& Mat) {
     for(int i= 0; i<Mat.size();i++) {
         for(int j =0; j<Mat[i].size();j++) {
             if(Mat[i][j]==0) {
@@ -208,6 +208,16 @@ void Bus::displayMatrix (std::vector<std::vector<double>>& Mat) {
                 std::cout<<"1 ";
             }
             
+        }
+        std::cout<<std::endl;
+    }
+}
+
+
+void Bus::displayMatrix (std::vector<std::vector<double>>& Mat) {
+    for(int i= 0; i<Mat.size();i++) {
+        for(int j =0; j<Mat[i].size();j++) {
+            std::cout<<Mat[i][j]<<" ";            
         }
         std::cout<<std::endl;
     }
@@ -293,10 +303,10 @@ int Bus::loadFlow(std::vector<Bus> bus, std::vector<std::vector<double>> G, std:
         for(int i=1; i< size; i++) {
             Gtemp = 0;
             Btemp = 0;
-            for (int j = 1; j < size; j++) {
+            for (int j = 0; j < size; j++) {
                 if (i!=j) {
-                    Gtemp += bus[i].e * G[i][j] + bus[i].f * B[i][j]; 
-                    Btemp += bus[i].f * G[i][j] - bus[i].e * B[i][j]; 
+                    Gtemp += bus[j].e * G[i][j] + bus[j].f * B[i][j]; 
+                    Btemp += bus[j].f * G[i][j] - bus[j].e * B[i][j]; 
                 }
             }
             GtempVector[i-1] = Gtemp;
@@ -313,14 +323,14 @@ int Bus::loadFlow(std::vector<Bus> bus, std::vector<std::vector<double>> G, std:
         for(int i = 1; i < size; i++) {
             for(int j = 1; j < size; j++) {
                 if( i == j ) {
-                    Jaugmented[i-1][j-1] = 2*bus[i].e*G[i][i] + GtempVector[i];
-                    Jaugmented[i-1][size -1 + j-1] = 2*bus[i].f*G[i][i] + BtempVector[i];
+                    Jaugmented[i-1][j-1] = 2*bus[i].e*G[i][i] + GtempVector[i-1];
+                    Jaugmented[i-1][size -1 + j-1] = 2*bus[i].f*G[i][i] + BtempVector[i-1];
                     if (bus[i].deltaV2flag) {
                         Jaugmented[QbusCount + size -1 + k][j-1] = 2*bus[i].e;
                         Jaugmented[QbusCount + size -1 + k][size -1 + j-1] = 2*bus[i].f;
                     } else {
-                        Jaugmented[size -1 + l][j-1] = 2*bus[i].e*B[i][i] - BtempVector[i];
-                        Jaugmented[size -1 + l][size -1 + j-1] = 2*bus[i].f*B[i][i] + GtempVector[i];
+                        Jaugmented[size -1 + l][j-1] = 2*bus[i].e*B[i][i] - BtempVector[i-1];
+                        Jaugmented[size -1 + l][size -1 + j-1] = 2*bus[i].f*B[i][i] + GtempVector[i-1];
                     }
                 } else {
                     Jaugmented[i-1][j-1] = bus[i].e*G[i][j] - bus[i].f*B[i][j];
@@ -344,13 +354,16 @@ int Bus::loadFlow(std::vector<Bus> bus, std::vector<std::vector<double>> G, std:
             }
         }
 
+        // std::cout<< " Before gauss \n";
+        // Bus::displayBinaryMatrix(Jaugmented);
+        
         std::cout<< " Before gauss \n";
         Bus::displayMatrix(Jaugmented);
-        
+
         var = Bus::gauss (Jaugmented);
 
         std::cout<< " After gauss \n";
-        Bus::displayMatrix(Jaugmented);
+        Bus::displayBinaryMatrix(Jaugmented);
 
         /* 
         The following segment finds the values of (delta)e and (delta)f.
