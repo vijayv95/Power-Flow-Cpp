@@ -217,7 +217,7 @@ void Bus::displayBinaryMatrix (std::vector<std::vector<double>>& Mat) {
 void Bus::displayMatrix (std::vector<std::vector<double>>& Mat) {
     for(int i= 0; i<Mat.size();i++) {
         for(int j =0; j<Mat[i].size();j++) {
-            std::cout<<Mat[i][j]<<" ";            
+            std::cout<< std::fixed << std::setprecision(1) <<Mat[i][j]<<" ";            
         }
         std::cout<<std::endl;
     }
@@ -363,7 +363,7 @@ int Bus::loadFlow(std::vector<Bus> bus, std::vector<std::vector<double>> G, std:
         var = Bus::gauss (Jaugmented);
 
         std::cout<< " After gauss \n";
-        Bus::displayBinaryMatrix(Jaugmented);
+        Bus::displayMatrix(Jaugmented);
 
         /* 
         The following segment finds the values of (delta)e and (delta)f.
@@ -371,7 +371,7 @@ int Bus::loadFlow(std::vector<Bus> bus, std::vector<std::vector<double>> G, std:
     
         for(int i = 1; i< size; i++) {
             bus[i].deltae = var[i-1];
-            bus[i].deltaf = var[size + i-1];
+            bus[i].deltaf = var[size + i-2];
             bus[i].e += bus[i].deltae;
             bus[i].f += bus[i].deltaf;
             bus[i].calculatedVoltage = std::sqrt(bus[i].e*bus[i].e + bus[i].f*bus[i].f);
