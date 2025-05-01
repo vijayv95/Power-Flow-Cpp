@@ -44,7 +44,7 @@ std::vector<std::vector<double>> Branch::matrixB(std::vector<Branch> branch, int
                         || (b.zBusNumber == i+1 && b.zBusNumber == j+1)) {
                         sus -= -b.branchReactance / (b.branchResistance*b.branchResistance
                                                         + b.branchReactance*b.branchReactance);
-                        sus += b.lineCharging;
+                        sus += -b.lineCharging/2;
                 }
                 if((b.tapBusNumber == i+1 && b.zBusNumber == j+1)
                         || (b.tapBusNumber == j+1 && b.zBusNumber == i+1)) {
@@ -219,18 +219,16 @@ std::vector<Branch> Branch::readFile (std::string name) {
 
 
 void Branch::dispayYbus(std::vector<std::vector<double>> G, std::vector<std::vector<double>> B) {
-std::cout << "Nodal admittance Y = G + jB \n";
-std::cout << "G matrix follows : \n";
-for(auto& row : G) {
-    for(auto& col : row){
-        std::cout << std::fixed << std::setprecision(4) << col << " ";
-    }
-    std::cout << "\n";
-}
-std::cout << "B matrix follows : \n";
-for(auto& row : B) {
-    for(auto& col : row){
-        std::cout << std::fixed << std::setprecision(4) << col << " ";
+std::cout << "Nodal admittance Y: \n";
+int size = G.size();
+for(int i = 0; i<size; i++){
+    for(int j=0; j< size; j++) {
+        if(B[i][j]<0){
+            std::cout << std::fixed << std::setprecision(4) << G[i][j] << " + j"<< -B[i][j] << "   " ;
+        }
+        if(B[i][j]>=0){
+            std::cout << std::fixed << std::setprecision(4) << G[i][j] << " - j"<< B[i][j] << "   " ;
+        }
     }
     std::cout << "\n";
 }
