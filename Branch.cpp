@@ -1,11 +1,14 @@
 #include "Branch.h"
+#include "Bus.h"
 #include <iostream>
 #include <vector>
 #include <string>
 #include <fstream>
 #include <iomanip>
 
-std::vector<std::vector<double>> Branch::matrixG(std::vector<Branch> branch, int size) {
+
+std::vector<std::vector<double>> Branch::matrixG(std::vector<Branch> branch, std::vector<double> shCon, int size) {
+
     std::vector<std::vector<double>> G(size,std::vector<double>(size));
     double con;
 
@@ -18,6 +21,8 @@ std::vector<std::vector<double>> Branch::matrixG(std::vector<Branch> branch, int
                     
                         con += b.branchResistance / (b.branchResistance*b.branchResistance
                                                         + b.branchReactance*b.branchReactance);
+
+                        con += shCon[i];
                 }
                 if((b.tapBusNumber == i+1 && b.zBusNumber == j+1)
                         || (b.tapBusNumber == j+1 && b.zBusNumber == i+1)) {
@@ -33,7 +38,7 @@ std::vector<std::vector<double>> Branch::matrixG(std::vector<Branch> branch, int
     return G;
 }
 
-std::vector<std::vector<double>> Branch::matrixB(std::vector<Branch> branch, int size) {
+std::vector<std::vector<double>> Branch::matrixB(std::vector<Branch> branch, std::vector<double> shSus, int size) {
     std::vector<std::vector<double>> B(size,std::vector<double>(size));
     double sus;
     for( int i=0; i< size; i++) {
@@ -42,14 +47,17 @@ std::vector<std::vector<double>> Branch::matrixB(std::vector<Branch> branch, int
             for(Branch& b : branch) {
                 if((b.tapBusNumber == i+1 && b.tapBusNumber == j+1)
                         || (b.zBusNumber == i+1 && b.zBusNumber == j+1)) {
-                        sus -= -b.branchReactance / (b.branchResistance*b.branchResistance
+                        sus += b.branchReactance / (b.branchResistance*b.branchResistance
                                                         + b.branchReactance*b.branchReactance);
                         sus += -b.lineCharging/2;
+
+                        sus += -shSus[i];
                 }
                 if((b.tapBusNumber == i+1 && b.zBusNumber == j+1)
                         || (b.tapBusNumber == j+1 && b.zBusNumber == i+1)) {
-                    sus += -b.branchReactance / (b.branchResistance*b.branchResistance
-                                                + b.branchReactance*b.branchReactance);
+
+                        sus += -b.branchReactance / (b.branchResistance*b.branchResistance
+                                                    + b.branchReactance*b.branchReactance);
                 }
         
             }  

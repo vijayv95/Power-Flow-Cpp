@@ -1,11 +1,12 @@
 #pragma once
 #include <vector>
 #include <string>
+
 class Branch {
     public:
     
-    static std::vector<std::vector<double>> matrixG(std::vector<Branch> , int );
-    static std::vector<std::vector<double>> matrixB(std::vector<Branch> , int );
+    static std::vector<std::vector<double>> matrixG(std::vector<Branch> , std::vector<double> , int);
+    static std::vector<std::vector<double>> matrixB(std::vector<Branch> , std::vector<double> , int);
     static std::vector<std::vector<double>> matrixYmag(std::vector<Branch> , int );
     static std::vector<std::vector<double>> matrixTheta(std::vector<Branch> , int );
     static std::vector<Branch> readFile (std::string );

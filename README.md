@@ -7,12 +7,15 @@ Check [UpdateLog.md](/UpdateLog.md) for details on previous tasks.
 
 ## Latest completed Task 
 
-> ***Bug Fix:*** changed `bus[i].deltaf = var[size + i-1];` to `bus[i].deltaf = var[size + i-2];`
+### Utilize all the given data.
+
+`Bus` and `Branch` classes are adjusted to use shunt Conducatance and Shunt Susptance from the data file.
+
 
 ## Task in progress
 
-- Write code to normalize Jacobian matrix before Gaussian elimination
+- Research about Transformer final turns ratio
 
 ## Next task
-- Verify convergence
+- Write code to normalize Jacobian matrix before Gaussian elimination
 - Write code to output to a file in the standard format.

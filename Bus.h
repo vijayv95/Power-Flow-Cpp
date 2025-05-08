@@ -7,15 +7,21 @@ class Bus {
     public:
 
     static std::vector<Bus> readFile (std::string);
-    static void displayResult(std::vector<Bus>);
-    static int loadFlow(std::vector<Bus>, std::vector<std::vector<double>>, std::vector<std::vector<double>>, double);
+    static void displayResult(std::vector<Bus>&);
+    static int loadFlow(std::vector<Bus>& , std::vector<std::vector<double>>, std::vector<std::vector<double>>, double);
     static void matrixPivot (std::vector<std::vector<double>>&);
     static void displayBinaryMatrix (std::vector<std::vector<double>>&);
     static void gaussElimination (std::vector<std::vector<double>>&);
     static std::vector<double> gauss(std::vector<std::vector<double>>&);
     static void swapMatrixRows (std::vector<std::vector<double>>&);
     static void displayMatrix (std::vector<std::vector<double>>&);
+    static std::vector<double> shuntCond(std::vector<Bus>& );
+    static std::vector<double> shuntSus(std::vector<Bus>& );
         
+    double shuntConductance;      // Shunt conductance G (per unit)
+    double shuntSusceptance;      // Shunt susceptance B (per unit)
+
+
     private:
 
     int busNumber;                // Bus number
@@ -52,8 +58,7 @@ class Bus {
     double desiredVoltage;        // Desired volts (pu)
     double maxLimit;              // Maximum MVAR or voltage limit
     double minLimit;              // Minimum MVAR or voltage limit
-    double shuntConductance;      // Shunt conductance G (per unit)
-    double shuntSusceptance;      // Shunt susceptance B (per unit)
+
     int remoteControlledBusNumber;// Remote controlled bus number
     
         

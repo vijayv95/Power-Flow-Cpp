@@ -1,6 +1,15 @@
 # Update documentation
 This flie is used to see details of the tasks completed. The latest task will be in [README.md](/README.md)
 
+## 08-05-2025
+
+### Verify Convergence  
+
+> ***Bug Fix:*** changed `bus[i].deltaf = var[size + i-1];` to `bus[i].deltaf = var[size + i-2];`
+
+Convergence is observed in test case 3, but not in tet case 1 and 2. The interations tend to repeat after a few itterations. 
+
+
 ## 01-05-2025
 
 ### Use textbook example to verify Residual matrix formation.

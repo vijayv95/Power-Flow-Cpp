@@ -147,6 +147,26 @@ std::vector<Bus> Bus::readFile (std::string name) {
 }
 
 
+std::vector<double> Bus::shuntCond(std::vector<Bus>& bus){
+
+    int size = bus.size();
+    std::vector<double> shuntCond(size);
+    for (int i=0; i< size; i++){
+        shuntCond[i] = bus[i].shuntConductance; 
+    }
+    return shuntCond;
+}
+
+std::vector<double> Bus::shuntSus(std::vector<Bus>& bus){
+
+    int size = bus.size();
+    std::vector<double> shuntSus(size);
+    for (int i=0; i< size; i++){
+        shuntSus[i] = bus[i].shuntSusceptance; 
+    }
+    return shuntSus;
+}
+
 std::vector<double> Bus::gauss(std::vector<std::vector<double> >& A) {
     int n = A.size();
 
@@ -217,13 +237,13 @@ void Bus::displayBinaryMatrix (std::vector<std::vector<double>>& Mat) {
 void Bus::displayMatrix (std::vector<std::vector<double>>& Mat) {
     for(int i= 0; i<Mat.size();i++) {
         for(int j =0; j<Mat[i].size();j++) {
-            std::cout<< std::fixed << std::setprecision(1) <<Mat[i][j]<<" ";            
+            std::cout<< std::fixed << std::setprecision(4) <<Mat[i][j]<<" ";            
         }
         std::cout<<std::endl;
     }
 }
 
-int Bus::loadFlow(std::vector<Bus> bus, std::vector<std::vector<double>> G, std::vector<std::vector<double>> B, double convergenceCriterion) {
+int Bus::loadFlow(std::vector<Bus>& bus, std::vector<std::vector<double>> G, std::vector<std::vector<double>> B, double convergenceCriterion) {
     int size = bus.size();
     double maxChange = convergenceCriterion;
     int interationCount = 0;
@@ -292,7 +312,7 @@ int Bus::loadFlow(std::vector<Bus> bus, std::vector<std::vector<double>> G, std:
                 maxChange = std::abs(bus[i].deltaV2);
             }
         }
-        if(maxChange < convergenceCriterion) {
+        if(maxChange <= convergenceCriterion) {
             break;
         }
 
@@ -384,14 +404,14 @@ int Bus::loadFlow(std::vector<Bus> bus, std::vector<std::vector<double>> G, std:
     return interationCount;
 }
 
-void Bus::displayResult(std::vector<Bus> bus) {
+void Bus::displayResult(std::vector<Bus>& bus) {
     std::cout<< "\n*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-\n";
     for(int i=0; i< bus.size(); i++) {
         std::cout<< "\nBus number: " << bus[i].busNumber;
         std::cout<< "\nSpecified final Voltage (pu)    : " << bus[i].finalVoltage;
         std::cout<< "\nCalculated final voltage (pu)   : " << bus[i].calculatedVoltage;
-        std::cout<< "\nSpecified phase angle (degree)  : " << bus[i].finalVoltage;
-        std::cout<< "\nCalculated phase angle (degree) : " << bus[i].calculatedVoltage;
+        std::cout<< "\nSpecified phase angle (degree)  : " << bus[i].finalAngle;
+        std::cout<< "\nCalculated phase angle (degree) : " << bus[i].calculatedAngle;
         std::cout<< "\n------------------------------------------------";
     }
     std::cout<< "\n*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-\n";
